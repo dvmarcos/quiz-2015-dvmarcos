@@ -15,11 +15,23 @@ exports.load = function(req, res, next, quizId) {
 
 // GET /quizes
 exports.index = function(req, res) {
-  models.Quiz.findAll().then(
+  if(req.query.search) {
+      var cadenaBusqueda  = req.query.search;
+      cadenaBusqueda=cadenaBusqueda.replace(/\s\s+/g,'%'); //reemplazo de todos los espacios en blanco
+      //console.log(cadenaBusqueda);
+      models.Quiz.findAll(
+        {where:["lower(pregunta) like lower(?)", '%'+cadenaBusqueda+'%'],order:'pregunta ASC'})
+        .then(function(quizes) {
+        res.render('quizes/index.ejs', {quizes: quizes, errors: []});
+      }
+    ).catch(function(error){next(error)});
+  }else{
+    models.Quiz.findAll().then(
     function(quizes) {
       res.render('quizes/index.ejs', {quizes: quizes, errors: []});
     }
   ).catch(function(error){next(error)});
+}
 };
 
 // GET /quizes/:id
