@@ -30,6 +30,26 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Helpers dinamicos:
 app.use(function(req, res, next) {
 
+  //auto -logout
+  req.session.now = new Date().getTime(); //transacción actual
+
+
+  if(! req.session.last){
+    req.session.last = req.session.now;  //transacción anterior
+  }
+
+  if(req.session.now - req.session.last >120000){
+    //desconectar sesión
+    if(req.session.user){
+      delete req.session.user;
+      res.redirect('/login');
+    }
+  }
+
+    req.session.last = req.session.now; //actualizar transacción anterior con actual
+
+
+
   // guardar path en session.redir para despues de login
   if (!req.path.match(/\/login|\/logout/)) {
     req.session.redir = req.path;
